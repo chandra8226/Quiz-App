@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { BsFillCheckCircleFill, BsFillXCircleFill } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
@@ -6,17 +6,28 @@ import { resetAll } from '../Redux/player/player.actions';
 import { noOfQues } from '../utils/questions';
 
 function Results() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const page = useSelector((state) => state.player.currentPage);
   const playerName = useSelector((state) => state.player.playerName);
   const shuffledQuestions = useSelector((state) => state.player.questions);
   const chosenOptions = useSelector((state) => state.player.chosenOptions);
 
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const [totalScore, setTotalScore] = useState(Array(noOfQues).fill(0));
 
   useEffect(() => {
     if (playerName !== null) {
       if (page !== null) navigate(`/quiz/${page}`);
+      else {
+        const newScore = Array(noOfQues).fill(0);
+        for (let i = 0; i < noOfQues; i++) {
+          if (shuffledQuestions[i].correctAnswer === chosenOptions[i].selectedOption) {
+            newScore[i] = 1;
+          }
+        }
+        setTotalScore(newScore);
+      }
     } else {
       navigate('/');
     }
@@ -31,7 +42,9 @@ function Results() {
   return (
     <div className="bg-neutral-800 flex flex-col text-white h-full pt-20 pb-10 justify-center items-center space-y-4">
       <div className="text-6xl mb-6 font-bold">Hi {playerName}!</div>
-      <div className="text-4xl pb-6">Your Final Score is 2 out of {noOfQues}</div>
+      <div className="text-4xl pb-6">
+        Your Final Score is {totalScore.reduce((a, b) => a + b, 0)} out of {noOfQues}
+      </div>
       <>
         {shuffledQuestions.map((ques, idx) => (
           <div key={idx}>
@@ -39,7 +52,7 @@ function Results() {
               <div className="font-medium text-xl mb-2 mr-10">
                 Q{idx + 1} of 5 : {ques.question}
               </div>
-              <div className="font-medium text-xl justify-end">0/1</div>
+              <div className="font-medium text-xl justify-end">{totalScore[idx]}/1</div>
             </div>
             <div className="flex flex-col w-full items-center">
               <div className="text-lg space-y-2 pb-6">
